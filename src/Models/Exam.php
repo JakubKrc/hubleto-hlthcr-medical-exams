@@ -2,6 +2,7 @@
 
 namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Models;
 
+use Hubleto\App\External\WaiBlue\HlthcrCore\Services\ProtectedFile;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Traits\EmptyDatesAsNull;
 use Hubleto\App\Community\Auth\Models\User;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Db\Column\StoredFile;
@@ -214,6 +215,8 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
 
     $record['id_author'] = $this->getAuthorId();
     $record['id_job'] = $this->getJobOfNewExam($record);
+    // Only "Generate PDF" sets the fitness assessment file, never a save (the column is read-only only in the form).
+    $record['fitness_assessment_file'] = null;
     $record['result'] = (int) ($record['result'] ?? self::RESULT_UNDETERMINED);
     $record['next_exam_date_typed'] = (string) ($record['date_next_exam'] ?? '') != '';
     $record['id_planned_exam'] = null;
@@ -248,6 +251,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
       $record['id_clinic'] = $originalExam->id_clinic;
       $record['id_author'] = $originalExam->id_author;
       $record['id_planned_exam'] = $originalExam->id_planned_exam;
+      $record['fitness_assessment_file'] = $originalExam->fitness_assessment_file;
       $record['next_exam_date_typed'] = $this->isNextExamDateTyped($record, $originalExam);
     }
 
@@ -279,14 +283,14 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     return $id;
   }
 
-  // The scan and the document are deleted with the exam.
+  // The scan, the document and the fitness assessment are deleted with the exam.
   public function onAfterDelete(int $id): int
   {
     $id = parent::onAfterDelete($id);
+    /** @var ProtectedFile */
+    $protectedFile = $this->getService(ProtectedFile::class);
     foreach ($this->filesOfDeletedExam as $file) {
-      if ($file == '') continue;
-      $filePath = $this->config()->getAsString('uploadFolder') . '/' . $file;
-      if (is_file($filePath)) unlink($filePath);
+      $protectedFile->delete($file);
     }
     $this->filesOfDeletedExam = [];
     return $id;

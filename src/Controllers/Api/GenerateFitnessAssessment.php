@@ -2,6 +2,7 @@
 
 namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Controllers\Api;
 
+use Hubleto\App\External\WaiBlue\HlthcrCore\Services\ProtectedFile;
 use Hubleto\App\Community\Documents\Generator;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Models\Exam;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\FitnessAssessment;
@@ -39,15 +40,8 @@ class GenerateFitnessAssessment extends \Hubleto\Erp\Controllers\ApiController
     $mExam = $this->getModel(Exam::class);
     $previousPdfFile = (string) $mExam->record->where('id', $idExam)->value('fitness_assessment_file');
     $mExam->record->where('id', $idExam)->update(['fitness_assessment_file' => $pdfFile]);
-    $this->deleteUploadedFile($previousPdfFile);
+    $this->getService(ProtectedFile::class)->delete($previousPdfFile);
 
     return ['status' => 'success', 'file' => $pdfFile];
-  }
-
-  private function deleteUploadedFile(string $file): void
-  {
-    if ($file == '') return;
-    $filePath = $this->env()->uploadFolder . '/' . $file;
-    if (is_file($filePath)) unlink($filePath);
   }
 }
