@@ -29,10 +29,15 @@ class FitnessAssessment extends \Hubleto\Erp\Core
     $exam = $mExam->record->prepareReadQuery()->where('hlthcr_exams.id', $idExam)->first();
     if (!$exam) return [];
 
+    // The job and branch at the time of the exam, so an assessment made again later prints the same.
     $employee = $this->getModel(Employee::class)->record->where('id', $exam->id_employee)->first();
-    $branch = $employee ? $this->getModel(Branch::class)->record->where('id', $employee->id_branch)->first() : null;
+    $idJob = $this->getService(ExamHazards::class)->getJobOfExam((int) $exam->id, (int) $exam->id_employee);
+    $job = $this->getModel(Job::class)->record->where('id', $idJob)->first();
+    $idBranch = 0;
+    if ($employee) $idBranch = (int) $employee->id_branch;
+    if ($job) $idBranch = (int) $job->id_branch;
+    $branch = $this->getModel(Branch::class)->record->where('id', $idBranch)->first();
     $customer = $branch ? $this->getModel(Customer::class)->record->where('id', $branch->id_customer)->first() : null;
-    $job = $employee ? $this->getModel(Job::class)->record->where('id', $employee->id_job)->first() : null;
     $clinic = $this->getModel(Clinic::class)->record->where('id', $exam->id_clinic)->first();
 
     return [

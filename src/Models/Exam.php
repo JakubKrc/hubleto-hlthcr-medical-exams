@@ -9,6 +9,7 @@ use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Clinic;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Traits\KeepsStoredFiles;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Traits\UsesStoredValues;
 use Hubleto\App\External\WaiBlue\HlthcrBranches\Models\BranchHasClinic;
+use Hubleto\App\External\WaiBlue\HlthcrBranches\Models\Job;
 use Hubleto\Framework\Exceptions\RecordSaveException;
 use Hubleto\App\External\WaiBlue\HlthcrEmployees\Models\Employee;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Controllers\Api\ClinicLookup;
@@ -56,6 +57,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
 
   public array $relations = [
     'EMPLOYEE' => [ self::BELONGS_TO, Employee::class, 'id_employee', 'id' ],
+    'JOB' => [ self::BELONGS_TO, Job::class, 'id_job', 'id' ],
     'CLINIC' => [ self::BELONGS_TO, Clinic::class, 'id_clinic', 'id' ],
     'AUTHOR' => [ self::BELONGS_TO, User::class, 'id_author', 'id' ],
     'HAZARDS' => [ self::HAS_MANY, ExamHasHazard::class, 'id_exam', 'id' ],
@@ -99,6 +101,8 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
         ->setRequired()
         ->setDefaultVisible()
       ,
+      // The employee's job at the time of the exam (one legacy app stores it); its hazards decide the next exam.
+      'id_job' => (new Lookup($this, $this->translate('Job position'), Job::class, 'RESTRICT'))->setReadonly(),
       'exam_type' => (new Integer($this, $this->translate('Type of medical exam')))
         ->setRequired()
         ->setDefaultVisible()
@@ -205,6 +209,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $this->submittedHazardLevels = $this->readSubmittedHazardLevels($record);
 
     $record['id_author'] = $this->getAuthorId();
+    $record['id_job'] = $this->getJobOfNewExam($record);
     $record['result'] = (int) ($record['result'] ?? self::RESULT_UNDETERMINED);
     $record['next_exam_date_typed'] = (string) ($record['date_next_exam'] ?? '') != '';
     $record['id_planned_exam'] = null;
@@ -222,7 +227,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     return $this->keepStoredFile($record, 'scan', null);
   }
 
-  // Employee, type, clinic and author stay as created.
+  // Employee, job, type, clinic and author stay as created.
   public function onBeforeUpdate(array $record): array
   {
     $record = parent::onBeforeUpdate($record);
@@ -234,6 +239,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $originalExam = $this->record->where('id', (int) $record['id'])->first();
     if ($originalExam) {
       $record['id_employee'] = $originalExam->id_employee;
+      $record['id_job'] = $originalExam->id_job;
       $record['exam_type'] = $originalExam->exam_type;
       $record['id_clinic'] = $originalExam->id_clinic;
       $record['id_author'] = $originalExam->id_author;
@@ -288,6 +294,27 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     /** @var \Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\FitnessAssessment */
     $fitnessAssessment = $this->getService(\Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\FitnessAssessment::class);
     return $fitnessAssessment->getDefaultTemplate();
+  }
+
+  // The chosen job must be one of the employee's branch; without one, the employee's current job.
+  private function getJobOfNewExam(array $record): ?int
+  {
+    $employee = $this->getModel(Employee::class)->record->where('id', (int) ($record['id_employee'] ?? 0))->first();
+    if (!$employee) return null;
+
+    $idChosenJob = (int) ($record['id_job'] ?? 0);
+    if ($idChosenJob <= 0) {
+      $idEmployeeJob = (int) $employee->id_job;
+      if ($idEmployeeJob <= 0) return null;
+      return $idEmployeeJob;
+    }
+
+    $chosenJob = $this->getModel(Job::class)->record->where('id', $idChosenJob)->first();
+    $isJobOfBranch = $chosenJob && (int) $chosenJob->id_branch == (int) $employee->id_branch;
+    if (!$isJobOfBranch) {
+      throw new RecordSaveException($this->translate('The job position is not one of the employee\'s branch.'));
+    }
+    return $idChosenJob;
   }
 
   // The signed-in user; none when the exam is created on the command line (demo data).
@@ -394,6 +421,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
       'date_exam' => $dateNextExam,
       'result' => self::RESULT_UNDETERMINED,
       'id_clinic' => $savedRecord['id_clinic'],
+      'id_job' => $this->getJobOfNewExam(['id_employee' => $savedRecord['id_employee']]),
       'id_author' => $this->getAuthorId(),
     ])->id;
 

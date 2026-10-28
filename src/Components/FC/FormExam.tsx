@@ -33,6 +33,7 @@ const TabDefault = () => {
   return <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
     <div>
       <Input field='id_employee' readonly={isSaved} />
+      {isSaved ? <Input field='id_job' /> : null}
       <Input field='exam_type' readonly={isSaved} />
       <div className='grid grid-cols-2 gap-2'>
         <Input field='date_exam' />

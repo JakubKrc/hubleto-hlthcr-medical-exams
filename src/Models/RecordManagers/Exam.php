@@ -6,6 +6,7 @@ use Hubleto\App\External\WaiBlue\HlthcrCore\Models\RecordManagers\Traits\Default
 use Hubleto\App\Community\Auth\Models\RecordManagers\User;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\RecordManagers\Clinic;
 use Hubleto\App\External\WaiBlue\HlthcrEmployees\Models\RecordManagers\Employee;
+use Hubleto\App\External\WaiBlue\HlthcrBranches\Models\RecordManagers\Job;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\ExamAccess;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,6 +25,11 @@ class Exam extends \Hubleto\Erp\RecordManager
   public function EMPLOYEE(): BelongsTo
   {
     return $this->belongsTo(Employee::class, 'id_employee', 'id');
+  }
+
+  public function JOB(): BelongsTo
+  {
+    return $this->belongsTo(Job::class, 'id_job', 'id');
   }
 
   public function PLANNED_EXAM(): BelongsTo

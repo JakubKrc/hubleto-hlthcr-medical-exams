@@ -5,6 +5,7 @@ namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services;
 use Hubleto\App\External\WaiBlue\HlthcrBranches\Models\JobHasHazard;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Hazard;
 use Hubleto\App\External\WaiBlue\HlthcrEmployees\Models\Employee;
+use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Models\Exam;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Models\ExamHasHazard;
 
 /**
@@ -21,7 +22,7 @@ class ExamHazards extends \Hubleto\Erp\Core
   {
     $levels = $idExam > 0 ? $this->loadSnapshotLevels($idExam) : [];
     $isFromJob = count($levels) == 0;
-    if ($isFromJob) $levels = $this->loadJobLevels($idEmployee);
+    if ($isFromJob) $levels = $this->loadJobLevels($this->getJobOfExam($idExam, $idEmployee));
 
     /** @var Hazard */
     $mHazard = $this->getModel(Hazard::class);
@@ -78,13 +79,23 @@ class ExamHazards extends \Hubleto\Erp\Core
     return $levels;
   }
 
-  // [idHazard => level] of the employee's current job (job hazard levels at the branch).
-  public function loadJobLevels(int $idEmployee): array
+  // The job the exam is for (stored with the exam); for a new exam the employee's current job.
+  public function getJobOfExam(int $idExam, int $idEmployee): int
   {
-    $employee = $this->getModel(Employee::class)->record->where('id', $idEmployee)->first();
-    if (!$employee || (int) $employee->id_job <= 0) return [];
+    $exam = $this->getModel(Exam::class)->record->where('id', $idExam)->first();
+    if ($exam && (int) $exam->id_job > 0) return (int) $exam->id_job;
 
-    $jobHazards = $this->getModel(JobHasHazard::class)->record->where('id_job', $employee->id_job)->get();
+    $employee = $this->getModel(Employee::class)->record->where('id', $idEmployee)->first();
+    if (!$employee) return 0;
+    return (int) $employee->id_job;
+  }
+
+  // [idHazard => level] of a job (job hazard levels at the branch).
+  public function loadJobLevels(int $idJob): array
+  {
+    if ($idJob <= 0) return [];
+
+    $jobHazards = $this->getModel(JobHasHazard::class)->record->where('id_job', $idJob)->get();
 
     $levels = [];
     foreach ($jobHazards as $jobHazard) {

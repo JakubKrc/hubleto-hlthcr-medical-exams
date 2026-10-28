@@ -5,7 +5,6 @@ namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services;
 use Hubleto\App\External\WaiBlue\HlthcrBranches\Models\Job;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Hazard;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Services\MonthDates;
-use Hubleto\App\External\WaiBlue\HlthcrEmployees\Models\Employee;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Models\Exam;
 
 /**
@@ -46,29 +45,29 @@ class NextExamDate extends \Hubleto\Erp\Core
     return MonthDates::addMonths($dateExam, $intervalMonths);
   }
 
+  // From the job the exam is for, not the employee's current job (it may have changed since).
   public function getIntervalMonths(int $idExam, int $idEmployee): int
   {
-    /** @var Employee */
-    $mEmployee = $this->getModel(Employee::class);
-    $employee = $mEmployee->record->where('id', $idEmployee)->first();
-    if (!$employee) return 0;
+    /** @var ExamHazards */
+    $examHazards = $this->getService(ExamHazards::class);
+    $idJob = $examHazards->getJobOfExam($idExam, $idEmployee);
 
     /** @var Job */
     $mJob = $this->getModel(Job::class);
-    $job = $mJob->record->where('id', (int) $employee->id_job)->first();
+    $job = $mJob->record->where('id', $idJob)->first();
     $jobInterval = $job ? (int) $job->exam_interval_months : 0;
     if ($jobInterval > 0) return $jobInterval;
 
-    return $this->getShortestHazardInterval($idExam, $idEmployee);
+    return $this->getShortestHazardInterval($idExam, $idJob);
   }
 
   // Shortest positive interval over the exam's hazards and the job's hazards, each at its category.
-  private function getShortestHazardInterval(int $idExam, int $idEmployee): int
+  private function getShortestHazardInterval(int $idExam, int $idJob): int
   {
     /** @var ExamHazards */
     $examHazards = $this->getService(ExamHazards::class);
 
-    $levelsByHazard = $examHazards->loadJobLevels($idEmployee);
+    $levelsByHazard = $examHazards->loadJobLevels($idJob);
     if ($idExam > 0) {
       foreach ($examHazards->loadSnapshotLevels($idExam) as $idHazard => $level) {
         $levelsByHazard[$idHazard] = $level;
