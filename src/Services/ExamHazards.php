@@ -13,8 +13,6 @@ use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Models\ExamHasHazard;
  */
 class ExamHazards extends \Hubleto\Erp\Core
 {
-  const HIGHEST_CATEGORY = 4;
-
   /**
    * The four hazard types with all catalogue hazards and the level for this exam:
    * ['isFromJob' => bool, 'hazardTypes' => [['id', 'name', 'uses_categories', 'is_exam_scope', 'hazards' => [['id', 'name', 'level']]]]].
@@ -56,13 +54,17 @@ class ExamHazards extends \Hubleto\Erp\Core
     /** @var ExamHasHazard */
     $mExamHazard = $this->getModel(ExamHasHazard::class);
     $mExamHazard->record->where('id_exam', $idExam)->delete();
+    $hazardTypesById = $this->getModel(Hazard::class)->record->pluck('type', 'id')->toArray();
 
-    foreach ($levelsByHazard as $idHazard => $level) {
-      $level = (int) $level;
-      if ($level <= 0) continue;
-      if ($level > self::HIGHEST_CATEGORY) $level = self::HIGHEST_CATEGORY;
+    foreach ($levelsByHazard as $idHazard => $submittedLevel) {
+      $idHazard = (int) $idHazard;
+      $isCatalogueHazard = isset($hazardTypesById[$idHazard]);
+      if (!$isCatalogueHazard) continue;
 
-      $mExamHazard->record->create(['id_exam' => $idExam, 'id_hazard' => (int) $idHazard, 'level' => $level]);
+      $level = Hazard::levelToStore((int) $hazardTypesById[$idHazard], (int) $submittedLevel);
+      if ($level == 0) continue;
+
+      $mExamHazard->record->create(['id_exam' => $idExam, 'id_hazard' => $idHazard, 'level' => $level]);
     }
   }
 

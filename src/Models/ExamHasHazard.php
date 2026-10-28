@@ -3,6 +3,7 @@
 namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Models;
 
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Hazard;
+use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Traits\HasHazardLevel;
 use Hubleto\Framework\Db\Column\Integer;
 use Hubleto\Framework\Db\Column\Lookup;
 
@@ -12,6 +13,8 @@ use Hubleto\Framework\Db\Column\Lookup;
  */
 class ExamHasHazard extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
 {
+  use HasHazardLevel;
+
   public string $table = 'hlthcr_exam_has_hazards';
   public string $recordManagerClass = RecordManagers\ExamHasHazard::class;
   public ?string $lookupSqlValue = 'concat({%TABLE%}.id_exam, " / ", {%TABLE%}.id_hazard)';
@@ -27,8 +30,32 @@ class ExamHasHazard extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\Hlth
     return array_merge(parent::describeColumns(), [
       'id_exam' => (new Lookup($this, $this->translate('Medical exam'), Exam::class, 'CASCADE'))->setRequired(),
       'id_hazard' => (new Lookup($this, $this->translate('Hazard'), Hazard::class))->setRequired()->setDefaultVisible(),
-      'level' => (new Integer($this, $this->translate('Level')))->setDefaultVisible(),
+      'level' => (new Integer($this, $this->translate('Level')))
+        ->setRequired()
+        ->setDefaultVisible()
+        ->setDefaultValue(Hazard::LEVEL_YES)
+        ->setEnumValues([
+          1 => $this->translate('Category 1'),
+          2 => $this->translate('Category 2'),
+          3 => $this->translate('Category 3'),
+          4 => $this->translate('Category 4'),
+        ])
+      ,
     ]);
+  }
+
+  public function onBeforeCreate(array $record): array
+  {
+    $record = parent::onBeforeCreate($record);
+    $this->refuseInvalidHazardLevel($record);
+    return $record;
+  }
+
+  public function onBeforeUpdate(array $record): array
+  {
+    $record = parent::onBeforeUpdate($record);
+    $this->refuseInvalidHazardLevel($record);
+    return $record;
   }
 
   public function describeTable(): \Hubleto\Framework\Description\Table

@@ -21,7 +21,7 @@ interface ExamHazardType {
 const parentApp = 'Hubleto/App/External/WaiBlue/HlthcrMedicalExams';
 const T = new Translator(parentApp + '/Loader', 'Components/ExamHazardsEditor');
 
-// Same values as ExamHazards::HIGHEST_CATEGORY and "not present" in PHP.
+// Same values as Hazard::HIGHEST_CATEGORY and "not present" in PHP.
 const LEVEL_NOT_PRESENT = 0;
 const LEVEL_YES = 1;
 const CATEGORY_LEVELS = [LEVEL_NOT_PRESENT, 1, 2, 3, 4];

@@ -39,13 +39,19 @@
         "Fitness assessment (PDF)": "Lekársky posudok (PDF)",
         "Filled in when a result is recorded, from the job interval or the hazard intervals; the next exam is then planned.": "Vyplní sa po zadaní výsledku, z intervalu pracovnej pozície alebo z intervalov rizík; ďalšia prehliadka sa potom naplánuje.",
         "Next exam date typed": "Dátum ďalšej prehliadky zadaný ručne",
-        "Planned next medical exam": "Naplánovaná ďalšia lekárska prehliadka"
+        "Planned next medical exam": "Naplánovaná ďalšia lekárska prehliadka",
+        "The clinic does not serve the employee's branch.": "Ambulancia neobsluhuje prevádzku zamestnanca."
     },
     "Models\\ExamHasHazard": {
         "Medical exam": "Lekárska prehliadka",
         "Hazard": "Faktor",
         "Level": "Kategória",
-        "Add hazard": "Pridať faktor"
+        "Add hazard": "Pridať faktor",
+        "A work factor needs a category 1 to 4, other hazards only \"yes\" (1).": "Faktor práce potrebuje kategóriu 1 až 4, ostatné riziká len „áno“ (1).",
+        "Category 1": "Kategória 1",
+        "Category 2": "Kategória 2",
+        "Category 3": "Kategória 3",
+        "Category 4": "Kategória 4"
     },
     "Controllers\\Api\\GetExamHazards": {
         "The medical exam does not exist.": "Lekárska prehliadka neexistuje."

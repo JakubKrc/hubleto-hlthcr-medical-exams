@@ -7,6 +7,9 @@ use Hubleto\App\Community\Auth\Models\User;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Db\Column\StoredFile;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Clinic;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Traits\KeepsStoredFiles;
+use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Traits\UsesStoredValues;
+use Hubleto\App\External\WaiBlue\HlthcrBranches\Models\BranchHasClinic;
+use Hubleto\Framework\Exceptions\RecordSaveException;
 use Hubleto\App\External\WaiBlue\HlthcrEmployees\Models\Employee;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Controllers\Api\ClinicLookup;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\ExamAccess;
@@ -27,6 +30,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
 {
   use EmptyDatesAsNull;
   use KeepsStoredFiles;
+  use UsesStoredValues;
 
   const TYPE_ENTRY = 1;
   const TYPE_EXIT = 2;
@@ -114,7 +118,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
       // Set when the user typed the next exam date, so it is not recomputed.
       'next_exam_date_typed' => (new Boolean($this, $this->translate('Next exam date typed'))),
       // The exam this one planned; it moves with the next exam date and is removed after "unfit" or an exit exam.
-      'id_planned_exam' => (new Lookup($this, $this->translate('Planned next medical exam'), Exam::class))->setReadonly(),
+      'id_planned_exam' => (new Lookup($this, $this->translate('Planned next medical exam'), Exam::class, 'SET NULL'))->setReadonly(),
       'result' => (new Integer($this, $this->translate('Result of medical exam')))
         ->setDefaultVisible()
         ->setDefaultValue(self::RESULT_UNDETERMINED)
@@ -200,7 +204,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $record = $this->emptyDatesAsNull($record);
     $this->submittedHazardLevels = $this->readSubmittedHazardLevels($record);
 
-    $record['id_author'] = $this->authProvider()->getUserId();
+    $record['id_author'] = $this->getAuthorId();
     $record['result'] = (int) ($record['result'] ?? self::RESULT_UNDETERMINED);
     $record['next_exam_date_typed'] = (string) ($record['date_next_exam'] ?? '') != '';
     $record['id_planned_exam'] = null;
@@ -212,6 +216,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     if ($examAccess->seesOnlyOwnClinicExams() && !$isOwnClinic) {
       $record['id_clinic'] = $examAccess->getOwnClinicId();
     }
+    $this->refuseClinicNotServingBranch($record);
 
     $record = $this->keepStoredFile($record, 'document', null);
     return $this->keepStoredFile($record, 'scan', null);
@@ -223,6 +228,8 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $record = parent::onBeforeUpdate($record);
     $record = $this->emptyDatesAsNull($record);
     $this->submittedHazardLevels = $this->readSubmittedHazardLevels($record);
+    // The next exam rules read these; a save that leaves one out must not clear the next exam.
+    $record = $this->addStoredValuesOfMissingColumns($record, ['result', 'date_exam', 'date_next_exam', 'next_exam_type']);
 
     $originalExam = $this->record->where('id', (int) $record['id'])->first();
     if ($originalExam) {
@@ -281,6 +288,31 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     /** @var \Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\FitnessAssessment */
     $fitnessAssessment = $this->getService(\Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\FitnessAssessment::class);
     return $fitnessAssessment->getDefaultTemplate();
+  }
+
+  // The signed-in user; none when the exam is created on the command line (demo data).
+  private function getAuthorId(): ?int
+  {
+    $idUser = (int) $this->authProvider()->getUserId();
+    if ($idUser <= 0) return null;
+    return $idUser;
+  }
+
+  // Both legacy apps offer only the clinics that serve the employee's branch; the server checks a new exam too.
+  private function refuseClinicNotServingBranch(array $record): void
+  {
+    $idClinic = (int) ($record['id_clinic'] ?? 0);
+    $employee = $this->getModel(Employee::class)->record->where('id', (int) ($record['id_employee'] ?? 0))->first();
+    if ($idClinic <= 0 || !$employee) return;
+
+    $clinicServesBranch = $this->getModel(BranchHasClinic::class)->record
+      ->where('id_branch', (int) $employee->id_branch)
+      ->where('id_clinic', $idClinic)
+      ->exists()
+    ;
+    if (!$clinicServesBranch) {
+      throw new RecordSaveException($this->translate('The clinic does not serve the employee\'s branch.'));
+    }
   }
 
   // The date is typed when this save changes it to a value; emptying it lets it be computed again.
@@ -362,7 +394,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
       'date_exam' => $dateNextExam,
       'result' => self::RESULT_UNDETERMINED,
       'id_clinic' => $savedRecord['id_clinic'],
-      'id_author' => $this->authProvider()->getUserId(),
+      'id_author' => $this->getAuthorId(),
     ])->id;
 
     $this->record->where('id', $idExam)->update(['id_planned_exam' => $idPlannedExam, 'next_exam_type' => $nextExamType]);
