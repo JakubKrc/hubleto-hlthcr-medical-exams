@@ -3,6 +3,7 @@
 namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Controllers\Api;
 
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Clinic;
+use Hubleto\App\External\WaiBlue\HlthcrCore\Services\DropdownRecords;
 use Hubleto\App\External\WaiBlue\HlthcrEmployees\Models\Employee;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\ExamAccess;
 
@@ -45,8 +46,7 @@ class ClinicLookup extends \Hubleto\Erp\Controllers\ApiController
       });
     }
 
-    $clinics = $mClinic->record->prepareLookupData($query->get()->toArray());
     // A list, as Hubleto's own lookup returns since Hubleto 2.
-    return $clinics;
+    return $this->getService(DropdownRecords::class)->load($mClinic, $query);
   }
 }

@@ -17,7 +17,7 @@ class ExamHasHazard extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\Hlth
 
   public string $table = 'hlthcr_exam_has_hazards';
   public string $recordManagerClass = RecordManagers\ExamHasHazard::class;
-  public ?string $lookupSqlValue = 'concat({%TABLE%}.id_exam, " / ", {%TABLE%}.id_hazard)';
+  public ?string $lookupSqlValue = '(select name from hlthcr_hazards where hlthcr_hazards.id = {%TABLE%}.id_hazard)';
   public ?string $lookupUrlDetail = 'hlthcr-medical-exams/exam-has-hazards/{%ID%}';
 
   public array $relations = [

@@ -52,7 +52,11 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
 
   public string $table = 'hlthcr_exams';
   public string $recordManagerClass = RecordManagers\Exam::class;
-  public ?string $lookupSqlValue = 'concat(date_format({%TABLE%}.date_exam, "%d.%m.%Y"), " (", {%TABLE%}.id, ")")';
+  // Date, employee and branch (both legacy apps show the employee and branch); the newest exams first.
+  public ?string $lookupSqlValue = 'concat(ifnull(date_format({%TABLE%}.date_exam, "%d.%m.%Y"), ""),
+    ifnull(concat(" - ", (select name from hlthcr_employees where hlthcr_employees.id = {%TABLE%}.id_employee)), ""),
+    ifnull(concat(" - ", (select b.name from hlthcr_jobs j join hlthcr_branches b on b.id = j.id_branch where j.id = {%TABLE%}.id_job)), ""))';
+  public string $lookupOrderBy = '{%TABLE%}.date_exam desc';
   public ?string $lookupUrlDetail = 'hlthcr-medical-exams/exams/{%ID%}';
 
   public array $relations = [
