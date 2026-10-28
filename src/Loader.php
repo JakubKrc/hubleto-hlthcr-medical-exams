@@ -97,7 +97,7 @@ class Loader extends \Hubleto\App\External\WaiBlue\HlthcrCore\HlthcrApp
    * Past exams of the demo employees of each demo branch: fit with a planned next exam, unfit, and one overdue.
    * Through the model (as a user would save it), so the next exam date and the snapshot follow the real rules.
    */
-  public function generateDemoData(): void
+  public function generateHlthcrDemoData(): void
   {
     /** @var Models\Exam */
     $mExam = $this->getModel(Models\Exam::class);
