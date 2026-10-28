@@ -1,0 +1,148 @@
+{
+    "manifest": {
+        "Medical exams": "Lekárske prehliadky",
+        "Medical exam": "Lekárska prehliadka",
+        "Calendar": "Kalendár",
+        "Export of medical exams": "Export lekárskych prehliadok",
+        "Preventive medical exams of client employees with their factors, the next exam date, the fitness assessment, export and calendar.": "Preventívne lekárske prehliadky zamestnancov klientov s faktormi, dátumom ďalšej prehliadky, lekárskym posudkom, exportom a kalendárom.",
+        "Settings": "Nastavenia"
+    },
+    "Models\\Exam": {
+        "Entry": "Vstupná",
+        "Exit": "Výstupná",
+        "Periodic": "Periodická",
+        "Before a change of work assignment": "Pred zmenou pracovného zaradenia",
+        "Extraordinary": "Mimoriadna",
+        "Undetermined": "Neurčené",
+        "Fit": "Spôsobilý",
+        "Fit with restrictions": "Spôsobilý s obmedzením",
+        "Unfit": "Nespôsobilý",
+        "Vaccination": "Očkovanie",
+        "Employee": "Zamestnanec",
+        "Type of medical exam": "Typ lekárskej prehliadky",
+        "Date of medical exam": "Dátum lekárskej prehliadky",
+        "Time of medical exam": "Čas lekárskej prehliadky",
+        "Type of next medical exam": "Typ nasledujúcej lekárskej prehliadky",
+        "Date of next medical exam": "Dátum nasledujúcej lekárskej prehliadky",
+        "Result of medical exam": "Výsledok lekárskej prehliadky",
+        "Note": "Poznámka",
+        "Clinic": "Ambulancia",
+        "Document": "Dokument",
+        "Scan": "Sken",
+        "Created by": "Vytvoril",
+        "Add medical exam": "Pridať lekársku prehliadku",
+        "Period": "Obdobie",
+        "All": "Všetky",
+        "Upcoming": "Nadchádzajúce",
+        "Past": "Minulé",
+        "Fitness assessment": "Lekársky posudok",
+        "Fitness assessment (PDF)": "Lekársky posudok (PDF)",
+        "Filled in when a result is recorded, from the job interval or the hazard intervals; the next exam is then planned.": "Vyplní sa po zadaní výsledku, z intervalu pracovnej pozície alebo z intervalov rizík; ďalšia prehliadka sa potom naplánuje.",
+        "Next exam date typed": "Dátum ďalšej prehliadky zadaný ručne",
+        "Planned next medical exam": "Naplánovaná ďalšia lekárska prehliadka"
+    },
+    "Models\\ExamHasHazard": {
+        "Medical exam": "Lekárska prehliadka",
+        "Hazard": "Faktor",
+        "Level": "Kategória",
+        "Add hazard": "Pridať faktor"
+    },
+    "Controllers\\Api\\GetExamHazards": {
+        "The medical exam does not exist.": "Lekárska prehliadka neexistuje."
+    },
+    "Controllers\\DownloadExamFile": {
+        "The medical exam does not exist.": "Lekárska prehliadka neexistuje.",
+        "No file is uploaded.": "Súbor nie je vložený."
+    },
+    "Calendar": {
+        "Medical exams": "Lekárske prehliadky",
+        "Medical exam - {{ employee }} - {{ branch }}": "Lek. prehliadka - {{ employee }} - {{ branch }}"
+    },
+    "Components\\FormExam": {
+        "Medical exam": "Lekárska prehliadka",
+        "Factors and examinations": "Faktory a vyšetrenia",
+        "Open document": "Zobraziť dokument",
+        "No document is uploaded.": "Dokument nie je vložený.",
+        "Open scan": "Zobraziť sken",
+        "No scan is uploaded.": "Sken nie je vložený.",
+        "Fitness assessment": "Lekársky posudok"
+    },
+    "Components\\ExamHazardsEditor": {
+        "Category not set": "Kategória nie je zadaná",
+        "Category": "Kategória",
+        "Factors were taken from the job position but are not saved in the medical exam yet. Save the medical exam.": "Faktory a osobitné predpisy boli získané z pracovnej pozície, ale ešte nie sú uložené v lekárskej prehliadke. Uložte lekársku prehliadku."
+    },
+    "Loader": {
+        "Medical exams": "Lekárske prehliadky",
+        "Save the employee first.": "Najprv uložte zamestnanca."
+    },
+    "Services\\ExamExport": {
+        "Date and time of exam": "Dátum a čas prehliadky",
+        "Employee": "Meno zamestnanca",
+        "Date of birth": "Dátum narodenia",
+        "Type of exam": "Typ prehliadky",
+        "Result": "Výsledok",
+        "Date of next exam": "Dátum nasledujúcej prehliadky",
+        "Type of next exam": "Typ nasledujúcej prehliadky",
+        "Clinic": "Ambulancia",
+        "Branch": "Prevádzka"
+    },
+    "Controllers\\ExamExport": {
+        "Export of medical exams": "Export lekárskych prehliadok",
+        "Date from": "Dátum od",
+        "Date to": "Dátum do",
+        "Branch": "Výber prevádzky",
+        "All": "Všetky",
+        "Type of exam": "Typ prehliadky",
+        "Result": "Výsledok",
+        "Export medical exams": "Exportovať lekárske prehliadky"
+    },
+    "Controllers\\DownloadExamExport": {
+        "Fill in the period.": "Je potrebné vyplniť časové filtre!"
+    },
+    "Controllers\\FitnessAssessmentPreview": {
+        "The medical exam does not exist.": "Lekárska prehliadka neexistuje."
+    },
+    "Controllers\\DownloadFitnessAssessment": {
+        "No fitness assessment was generated yet.": "Lekársky posudok ešte nebol vygenerovaný."
+    },
+    "Controllers\\Settings": {
+        "Medical exams": "Lekárske prehliadky",
+        "Settings": "Nastavenia",
+        "The next medical exam date comes from the job position: its own interval, or else the shortest interval of its hazards at their category. No next exam follows an exit exam or the result \"unfit\".": "Dátum ďalšej lekárskej prehliadky určuje pracovná pozícia: jej vlastný interval, inak najkratší interval jej rizík podľa kategórie. Po výstupnej prehliadke ani po výsledku „nespôsobilý“ ďalšia prehliadka nenasleduje.",
+        "The fitness assessment uses a default template. You can add your own template in the Documents app.": "Lekársky posudok používa predvolenú šablónu. Vlastnú šablónu môžete pridať v aplikácii Dokumenty.",
+        "Hazard intervals": "Intervaly rizík",
+        "Job positions": "Pracovné pozície"
+    },
+    "Controllers\\Api\\GenerateFitnessAssessment": {
+        "The medical exam does not exist.": "Lekárska prehliadka neexistuje.",
+        "Medical fitness assessment": "Lekársky posudok"
+    },
+    "Components\\FitnessAssessmentButtons": {
+        "Save the medical exam first.": "Najprv uložte lekársku prehliadku.",
+        "The PDF was generated.": "PDF bolo vygenerované.",
+        "The PDF could not be generated.": "PDF sa nepodarilo vygenerovať.",
+        "Print preview": "Náhľad na tlač",
+        "Generate PDF": "Vygenerovať PDF",
+        "Download PDF": "Stiahnuť PDF"
+    },
+    "Services\\FitnessAssessment": {
+        "Medical fitness assessment": "Lekársky posudok o zdravotnej spôsobilosti na prácu",
+        "Medical exam": "Lekárska prehliadka",
+        "Employer": "Zamestnávateľ",
+        "Company ID": "IČO",
+        "Branch": "Prevádzka",
+        "Employee": "Zamestnanec",
+        "born": "nar.",
+        "Personal number": "Osobné číslo",
+        "Job position": "Pracovná pozícia",
+        "category": "kategória",
+        "Result": "Záver",
+        "Next medical exam": "Ďalšia lekárska prehliadka",
+        "Clinic": "Ambulancia",
+        "Date and signature of the doctor": "Dátum a podpis lekára"
+    },
+    "Components\\FormExamHasHazard": {
+        "Hazard of the medical exam": "Faktor prehliadky"
+    }
+}

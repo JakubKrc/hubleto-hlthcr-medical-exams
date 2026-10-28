@@ -1,0 +1,43 @@
+<div class="card m-2">
+  <div class="card-header">
+    <h1 class="app-main-title">{{ translate('Export of medical exams') }}</h1>
+  </div>
+  <div class="card-body">
+    <form method="get" action="{{ config.projectUrl }}/hlthcr-medical-exams/export/download" class="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+      <label class="flex flex-col gap-1">{{ translate('Date from') }}
+        <input type="date" name="dateFrom" value="{{ viewParams.dateFrom }}" required>
+      </label>
+      <label class="flex flex-col gap-1">{{ translate('Date to') }}
+        <input type="date" name="dateTo" value="{{ viewParams.dateTo }}" required>
+      </label>
+      <label class="flex flex-col gap-1">{{ translate('Branch') }}
+        <select name="idBranch">
+          <option value="0">{{ translate('All') }}</option>
+          {% for idBranch, branchName in viewParams.branchOptions %}
+            <option value="{{ idBranch }}">{{ branchName }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="flex flex-col gap-1">{{ translate('Type of exam') }}
+        <select name="examType">
+          <option value="{{ viewParams.any }}">{{ translate('All') }}</option>
+          {% for value, label in viewParams.typeOptions %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="flex flex-col gap-1">{{ translate('Result') }}
+        <select name="result">
+          <option value="{{ viewParams.any }}">{{ translate('All') }}</option>
+          {% for value, label in viewParams.resultOptions %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary">
+        <span class="icon"><i class="fas fa-download"></i></span>
+        <span class="text">{{ translate('Export medical exams') }}</span>
+      </button>
+    </form>
+  </div>
+</div>
