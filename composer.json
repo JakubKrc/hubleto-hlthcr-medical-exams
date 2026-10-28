@@ -1,6 +1,6 @@
 {
     "name": "wai-blue/hubleto-hlthcr-medical-exams",
-    "license": "MIT",
+    "license": "proprietary",
     "description": "Hlthcr for Hubleto: Medical exams (LPP): next exam date, planned exams, fitness assessment PDF, export, calendar",
     "require": {
         "wai-blue/hubleto-hlthcr-core": "dev-main",
