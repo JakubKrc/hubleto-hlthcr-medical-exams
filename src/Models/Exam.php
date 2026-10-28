@@ -91,7 +91,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $nextTypeLabels = [self::TYPE_UNDETERMINED => $this->translate('Undetermined')] + $this->getTypeLabels();
 
     return array_merge(parent::describeColumns(), [
-      'id_employee' => (new Lookup($this, $this->translate('Employee'), Employee::class, 'CASCADE'))
+      'id_employee' => (new Lookup($this, $this->translate('Employee'), Employee::class, 'RESTRICT'))
         ->setRequired()
         ->setDefaultVisible()
       ,

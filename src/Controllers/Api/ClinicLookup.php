@@ -30,8 +30,18 @@ class ClinicLookup extends \Hubleto\Erp\Controllers\ApiController
     } elseif ($idEmployee > 0) {
       $employee = $this->getModel(Employee::class)->record->prepareReadQuery()->where('hlthcr_employees.id', $idEmployee)->first();
       $idBranch = $employee ? (int) $employee->id_branch : 0;
-      $query = $query->whereIn('hlthcr_clinics.id', function ($clinicsOfBranch) use ($idBranch) {
-        $clinicsOfBranch->select('id_clinic')->from('hlthcr_branch_has_clinics')->where('id_branch', $idBranch);
+
+      // The clinic the exam already has stays in the list, also when it no longer serves the branch.
+      $formRecord = $this->router()->urlParamAsArray('formRecord');
+      $idChosenClinic = (int) ($formRecord['id_clinic'] ?? 0);
+
+      $query = $query->where(function ($offeredClinics) use ($idBranch, $idChosenClinic) {
+        $offeredClinics->whereIn('hlthcr_clinics.id', function ($clinicsOfBranch) use ($idBranch) {
+          $clinicsOfBranch->select('id_clinic')->from('hlthcr_branch_has_clinics')->where('id_branch', $idBranch);
+        });
+        if ($idChosenClinic > 0) {
+          $offeredClinics->orWhere('hlthcr_clinics.id', $idChosenClinic);
+        }
       });
     }
 
