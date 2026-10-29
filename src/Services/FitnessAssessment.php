@@ -3,6 +3,7 @@
 namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services;
 
 use Hubleto\App\Community\Customers\Models\Customer;
+use Hubleto\App\Community\Documents\Models\Template;
 use Hubleto\App\External\WaiBlue\HlthcrBranches\Models\Branch;
 use Hubleto\App\External\WaiBlue\HlthcrBranches\Models\Job;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Clinic;
@@ -18,6 +19,8 @@ class FitnessAssessment extends \Hubleto\Erp\Core
 {
   public string $translationContext = 'hubleto-app-external-waiblue-hlthcrmedicalexams-loader';
   public string $translationContextInner = 'Services\\FitnessAssessment';
+
+  const TEMPLATE_CONFIG = 'fitnessAssessmentTemplateId';
 
   /**
    * Variables of one exam the user may see; empty when the exam is not visible.
@@ -97,8 +100,34 @@ class FitnessAssessment extends \Hubleto\Erp\Core
     return date('d.m.Y', strtotime($date));
   }
 
+  // The Documents app template chosen in the settings; 0 means the default template (Hubleto's Generator also falls back to it).
+  public function getTemplateId(): int
+  {
+    $examsApp = $this->appManager()->getApp(\Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Loader::class);
+    if ($examsApp === null) return 0;
+    return $examsApp->configAsInteger(self::TEMPLATE_CONFIG);
+  }
+
+  public function saveTemplateId(int $idTemplate): void
+  {
+    $examsApp = $this->appManager()->getApp(\Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Loader::class);
+    if ($examsApp === null) return;
+    $examsApp->saveConfig(self::TEMPLATE_CONFIG, (string) $idTemplate);
+  }
+
+  // Templates of the Documents app as id => name, for the settings page.
+  public function getTemplateNames(): array
+  {
+    $templateNames = [];
+    $templates = $this->getModel(Template::class)->record->orderBy('name')->get(['id', 'name']);
+    foreach ($templates as $template) {
+      $templateNames[(int) $template->id] = (string) $template->name;
+    }
+    return $templateNames;
+  }
+
   /**
-   * Default Twig template; an administrator may replace it with a template in the Documents app.
+   * Default Twig template; used when no Documents app template is chosen in the settings.
    * DejaVu Sans comes with the PDF library and has all Slovak letters (the default font has not).
    */
   public function getDefaultTemplate(): string

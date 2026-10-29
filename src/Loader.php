@@ -34,6 +34,8 @@ class Loader extends \Hubleto\App\External\WaiBlue\HlthcrCore\HlthcrApp
     /** @var \Hubleto\App\Community\Calendar\Manager $calendarManager */
     $calendarManager = $this->getService(\Hubleto\App\Community\Calendar\Manager::class);
     $calendarManager->addCalendar($this, 'hlthcr-medical-exams', Calendar::class);
+
+    $this->getService(Services\ExamNotifications::class)->registerCategory();
   }
 
   public function installApp(int $round): void

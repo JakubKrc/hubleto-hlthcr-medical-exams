@@ -2,6 +2,8 @@
 
 namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Controllers;
 
+use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\FitnessAssessment;
+
 class Settings extends \Hubleto\Erp\Controller
 {
   public function getBreadcrumbs(): array
@@ -15,6 +17,28 @@ class Settings extends \Hubleto\Erp\Controller
   public function prepareView(): void
   {
     parent::prepareView();
+
+    /** @var \Hubleto\App\External\WaiBlue\HlthcrCore\Services\Roles */
+    $roles = $this->getService(\Hubleto\App\External\WaiBlue\HlthcrCore\Services\Roles::class);
+    $maySaveSettings = $roles->isActiveUserAdministratorOrManager();
+    $this->viewParams['maySaveSettings'] = $maySaveSettings;
+
+    /** @var FitnessAssessment */
+    $fitnessAssessment = $this->getService(FitnessAssessment::class);
+    $templateNames = $fitnessAssessment->getTemplateNames();
+
+    $settingsChanged = $this->router()->urlParamAsBool('settingsChanged');
+    if ($settingsChanged && $maySaveSettings) {
+      $idTemplate = $this->router()->urlParamAsInteger('fitnessAssessmentTemplateId');
+      $isKnownTemplate = $idTemplate == 0 || isset($templateNames[$idTemplate]);
+      if ($isKnownTemplate) {
+        $fitnessAssessment->saveTemplateId($idTemplate);
+        $this->viewParams['settingsSaved'] = true;
+      }
+    }
+
+    $this->viewParams['templateNames'] = $templateNames;
+    $this->viewParams['fitnessAssessmentTemplateId'] = $fitnessAssessment->getTemplateId();
     $this->setView('@Hubleto:App:External:WaiBlue:HlthcrMedicalExams/Settings.twig');
   }
 }

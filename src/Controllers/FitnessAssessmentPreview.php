@@ -25,6 +25,6 @@ class FitnessAssessmentPreview extends \Hubleto\Erp\Controller
 
     /** @var Generator */
     $generator = $this->getService(Generator::class);
-    return $generator->renderTemplate(Exam::class, 0, $vars);
+    return $generator->renderTemplate(Exam::class, $fitnessAssessment->getTemplateId(), $vars);
   }
 }

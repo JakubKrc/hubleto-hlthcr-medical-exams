@@ -1,11 +1,39 @@
 <div class="flex items-center">
   <h1 class="app-main-title">{{ translate('Medical exams') }} > {{ translate('Settings') }}</h1>
+  {% if viewParams.settingsSaved %}
+    <div class="badge badge-info text-sm ml-4">{{ translate('Settings saved.') }}</div>
+  {% endif %}
 </div>
 
 <div class="card mt-10 w-1/2 m-auto">
   <div class="card-body">
     <p class="mb-2">{{ translate('The next medical exam date comes from the job position: its own interval, or else the shortest interval of its hazards at their category. No next exam follows an exit exam or the result "unfit".') }}</p>
-    <p class="mb-4">{{ translate('The fitness assessment uses a default template. You can add your own template in the Documents app.') }}</p>
+    <form id="settings-form" action="" method="POST" class="mb-4">
+      <input type="hidden" name="settingsChanged" value="1">
+      <table class="table-default">
+        <tbody>
+          <tr>
+            <td>{{ translate('Fitness assessment template') }}</td>
+            <td>
+              <select name="fitnessAssessmentTemplateId" class="hubleto component input">
+                <option value="0">{{ translate('Default template') }}</option>
+                {% for idTemplate, templateName in viewParams.templateNames %}
+                  <option value="{{ idTemplate }}" {% if idTemplate == viewParams.fitnessAssessmentTemplateId %}selected{% endif %}>{{ templateName }}</option>
+                {% endfor %}
+              </select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="text-sm mt-2">{{ translate('You can add your own template in the Documents app.') }}</p>
+      <div class="mt-2 text-right">
+        {% if viewParams.maySaveSettings %}
+          <button type="submit" class="btn btn-primary"><span class="text">{{ translate('Save') }}</span></button>
+        {% else %}
+          <span class="text-sm">{{ translate('Only administrators and managers change the settings.') }}</span>
+        {% endif %}
+      </div>
+    </form>
     <div class="flex gap-2 flex-wrap">
       <a href="{{ config.projectUrl }}/hlthcr/hazards" class="btn btn-transparent">
         <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>

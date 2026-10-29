@@ -118,9 +118,14 @@
         "Medical exams": "Lekárske prehliadky",
         "Settings": "Nastavenia",
         "The next medical exam date comes from the job position: its own interval, or else the shortest interval of its hazards at their category. No next exam follows an exit exam or the result \"unfit\".": "Dátum ďalšej lekárskej prehliadky určuje pracovná pozícia: jej vlastný interval, inak najkratší interval jej rizík podľa kategórie. Po výstupnej prehliadke ani po výsledku „nespôsobilý“ ďalšia prehliadka nenasleduje.",
-        "The fitness assessment uses a default template. You can add your own template in the Documents app.": "Lekársky posudok používa predvolenú šablónu. Vlastnú šablónu môžete pridať v aplikácii Dokumenty.",
         "Hazard intervals": "Intervaly rizík",
-        "Job positions": "Pracovné pozície"
+        "Job positions": "Pracovné pozície",
+        "Settings saved.": "Nastavenia boli uložené.",
+        "Fitness assessment template": "Šablóna lekárskeho posudku",
+        "Default template": "Predvolená šablóna",
+        "You can add your own template in the Documents app.": "Vlastnú šablónu môžete pridať v aplikácii Dokumenty.",
+        "Save": "Uložiť",
+        "Only administrators and managers change the settings.": "Nastavenia menia iba administrátori a manažéri."
     },
     "Controllers\\Api\\GenerateFitnessAssessment": {
         "The medical exam does not exist.": "Lekárska prehliadka neexistuje.",
@@ -152,5 +157,8 @@
     },
     "Components\\FormExamHasHazard": {
         "Hazard of the medical exam": "Faktor prehliadky"
+    },
+    "Services\\ExamNotifications": {
+        "Planned medical exam": "Naplánovaná lekárska prehliadka"
     }
 }

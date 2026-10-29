@@ -53,6 +53,11 @@ class Calendar extends \Hubleto\App\Community\Calendar\Calendar
       $query = $query->where('hlthcr_exams.id_author', $idAuthor);
     }
 
+    // Hubleto's calendar filter "not done" is 1, "done" is 2; an exam is done when it has a result.
+    $completedFilter = (int) ($filter['fCompleted'] ?? 0);
+    if ($completedFilter == 1) $query = $query->where('hlthcr_exams.result', Models\Exam::RESULT_UNDETERMINED);
+    if ($completedFilter == 2) $query = $query->where('hlthcr_exams.result', '!=', Models\Exam::RESULT_UNDETERMINED);
+
     $events = [];
     foreach ($query->get()->toArray() as $exam) {
       $events[] = $this->convertToCalendarEvent($exam);

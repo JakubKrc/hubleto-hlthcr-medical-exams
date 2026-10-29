@@ -16,6 +16,7 @@ use Hubleto\App\External\WaiBlue\HlthcrEmployees\Models\Employee;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Controllers\Api\ClinicLookup;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\ExamAccess;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\ExamHazards;
+use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\ExamNotifications;
 use Hubleto\App\External\WaiBlue\HlthcrMedicalExams\Services\NextExamDate;
 use Hubleto\Framework\Db\Column\Boolean;
 use Hubleto\Framework\Db\Column\Date;
@@ -263,6 +264,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
   {
     $savedRecord = parent::onAfterCreate($savedRecord);
     $this->saveSubmittedHazards((int) $savedRecord['id']);
+    $this->getService(ExamNotifications::class)->notifyExamPlanners($savedRecord);
 
     return $this->updateNextExam($savedRecord, '');
   }
@@ -271,6 +273,9 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
   {
     $savedRecord = parent::onAfterUpdate($originalRecord, $savedRecord);
     $this->saveSubmittedHazards((int) $savedRecord['id']);
+
+    $isExamDateChanged = (string) ($originalRecord['date_exam'] ?? '') != (string) ($savedRecord['date_exam'] ?? '');
+    if ($isExamDateChanged) $this->getService(ExamNotifications::class)->notifyExamPlanners($savedRecord);
 
     // Before a result there was nothing to plan, so a date typed earlier counts as new when the result comes.
     $previousNextExamDate = '';

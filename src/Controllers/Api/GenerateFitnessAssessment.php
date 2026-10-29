@@ -34,7 +34,8 @@ class GenerateFitnessAssessment extends \Hubleto\Erp\Controllers\ApiController
 
     /** @var Generator */
     $generator = $this->getService(Generator::class);
-    $generator->generatePdfDocumentFromTemplate($documentName, Exam::class, $idExam, 0, $pdfFile, $vars, false);
+    $idTemplate = $fitnessAssessment->getTemplateId();
+    $generator->generatePdfDocumentFromTemplate($documentName, Exam::class, $idExam, $idTemplate, $pdfFile, $vars, false);
 
     /** @var Exam */
     $mExam = $this->getModel(Exam::class);
