@@ -272,7 +272,10 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $savedRecord = parent::onAfterUpdate($originalRecord, $savedRecord);
     $this->saveSubmittedHazards((int) $savedRecord['id']);
 
-    $previousNextExamDate = (string) ($originalRecord['date_next_exam'] ?? '');
+    // Before a result there was nothing to plan, so a date typed earlier counts as new when the result comes.
+    $previousNextExamDate = '';
+    $couldPlanBefore = $this->getService(NextExamDate::class)->hasResultWithNextExam($originalRecord);
+    if ($couldPlanBefore) $previousNextExamDate = (string) ($originalRecord['date_next_exam'] ?? '');
     return $this->updateNextExam($savedRecord, $previousNextExamDate);
   }
 
@@ -396,7 +399,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
   }
 
   /**
-   * Keeps one planned exam on the next exam date: moves the one planned before, or creates it.
+   * Keeps one planned exam on the next exam date: moves the one planned before, or creates it when the date changed.
    * Created directly, so the planned exam does not plan further exams before it has a result.
    */
   private function planNextExam(array $savedRecord, string $dateNextExam, string $previousNextExamDate): array
@@ -413,6 +416,10 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
       }
       return $savedRecord;
     }
+
+    // A planned exam the user deleted is not created again while the next exam date stays (both legacy apps).
+    $isNextExamDateChanged = $dateNextExam != $previousNextExamDate;
+    if (!$isNextExamDateChanged) return $savedRecord;
 
     $nextExamType = (int) ($savedRecord['next_exam_type'] ?? self::TYPE_UNDETERMINED);
     if ($nextExamType == self::TYPE_UNDETERMINED) $nextExamType = self::TYPE_PERIODIC;
