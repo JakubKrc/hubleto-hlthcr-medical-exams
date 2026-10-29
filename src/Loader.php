@@ -9,6 +9,8 @@ use Hubleto\App\External\WaiBlue\HlthcrEmployees\Models\Employee;
 
 class Loader extends \Hubleto\App\External\WaiBlue\HlthcrCore\HlthcrApp
 {
+  const CALENDAR_APP = 'Hubleto\\App\\Community\\Calendar';
+
   public function init(): void
   {
     parent::init();
@@ -70,12 +72,18 @@ class Loader extends \Hubleto\App\External\WaiBlue\HlthcrCore\HlthcrApp
 
   public function renderSecondSidebar(): string
   {
+    // Medical staff do not have the calendar (both legacy apps).
+    $calendarButton = '';
+    if ($this->isAppPermittedForActiveUser(self::CALENDAR_APP)) {
+      $calendarButton = $this->secondSidebarButton('calendar', 'fas fa-calendar-days', $this->translate('Calendar'));
+    }
+
     return '
       ' . $this->secondSidebarTitle() . '
       <div class="app-sidebar-buttons">
         ' . $this->secondSidebarButton('hlthcr-medical-exams/exams', 'fas fa-stethoscope', $this->translate('Medical exams')) . '
         ' . $this->secondSidebarButton('hlthcr-medical-exams/export', 'fas fa-file-csv', $this->translate('Export of medical exams')) . '
-        ' . $this->secondSidebarButton('calendar', 'fas fa-calendar-days', $this->translate('Calendar')) . '
+        ' . $calendarButton . '
         ' . $this->secondSidebarButton('hlthcr-medical-exams/settings', 'fas fa-cog', $this->translate('Settings')) . '
       </div>
     ';

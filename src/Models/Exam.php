@@ -263,7 +263,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
   public function onAfterCreate(array $savedRecord): array
   {
     $savedRecord = parent::onAfterCreate($savedRecord);
-    $this->saveSubmittedHazards((int) $savedRecord['id']);
+    $this->saveSubmittedOrJobHazards((int) $savedRecord['id'], (int) $savedRecord['id_employee']);
     $this->getService(ExamNotifications::class)->notifyExamPlanners($savedRecord);
 
     return $this->updateNextExam($savedRecord, '');
@@ -493,5 +493,19 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     if ($this->submittedHazardLevels === null) return;
     $this->getService(ExamHazards::class)->saveSnapshot($idExam, $this->submittedHazardLevels);
     $this->submittedHazardLevels = null;
+  }
+
+  // The form sends the factors only when their tab was opened; a new exam then gets its job's factors, as the tab shows them.
+  private function saveSubmittedOrJobHazards(int $idExam, int $idEmployee): void
+  {
+    if ($this->submittedHazardLevels !== null) {
+      $this->saveSubmittedHazards($idExam);
+      return;
+    }
+
+    /** @var ExamHazards */
+    $examHazards = $this->getService(ExamHazards::class);
+    $jobLevels = $examHazards->loadJobLevels($examHazards->getJobOfExam($idExam, $idEmployee));
+    $examHazards->saveSnapshot($idExam, $jobLevels);
   }
 }

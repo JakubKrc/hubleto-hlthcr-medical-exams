@@ -6,6 +6,7 @@ use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Hazard;
 use Hubleto\App\External\WaiBlue\HlthcrCore\Models\Traits\HasHazardLevel;
 use Hubleto\Framework\Db\Column\Integer;
 use Hubleto\Framework\Db\Column\Lookup;
+use Hubleto\Framework\Db\Column\Virtual;
 
 /**
  * One factor, hazard or examination of a medical exam, as submitted in the exam form (legacy lpp_risks).
@@ -32,14 +33,12 @@ class ExamHasHazard extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\Hlth
       'id_hazard' => (new Lookup($this, $this->translate('Hazard'), Hazard::class))->setRequired()->setDefaultVisible(),
       'level' => (new Integer($this, $this->translate('Level')))
         ->setRequired()
-        ->setDefaultVisible()
         ->setDefaultValue(Hazard::LEVEL_YES)
-        ->setEnumValues([
-          1 => $this->translate('Category 1'),
-          2 => $this->translate('Category 2'),
-          3 => $this->translate('Category 3'),
-          4 => $this->translate('Category 4'),
-        ])
+        ->setEnumValues($this->getLevelTexts())
+      ,
+      'virt_level' => (new Virtual($this, $this->translate('Level')))
+        ->setDefaultVisible()
+        ->setProperty('sql', $this->getLevelTextSql())
       ,
     ]);
   }

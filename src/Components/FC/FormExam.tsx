@@ -7,7 +7,6 @@ import { dateToEUFormat } from '@hubleto/react-ui/components/fc/Inputs/DateTime'
 import { useRecordField } from '@hubleto/react-ui/components/fc/FormRecordStore';
 // Shared with other Hlthcr apps (relative import: Hubleto has no alias for custom apps).
 // Core is a sibling package (external_apps/ or vendor/wai-blue/).
-import FileDownloadButton from '../../../../hubleto-hlthcr-core/src/Components/FC/FileDownloadButton';
 import ExamHazardsEditor from './ExamHazardsEditor';
 import FitnessAssessmentButtons from './FitnessAssessmentButtons';
 
@@ -47,21 +46,7 @@ const TabDefault = () => {
       <Input field='next_exam_type' />
       <Input field='date_next_exam' />
       <Input field='document' />
-      <FileDownloadButton
-        urlSlug='hlthcr-medical-exams/exams'
-        fileField='document'
-        downloadAction='document'
-        text={T.translate('Open document')}
-        noFileText={T.translate('No document is uploaded.')}
-      />
       <Input field='scan' />
-      <FileDownloadButton
-        urlSlug='hlthcr-medical-exams/exams'
-        fileField='scan'
-        downloadAction='scan'
-        text={T.translate('Open scan')}
-        noFileText={T.translate('No scan is uploaded.')}
-      />
     </div>
   </div>;
 }

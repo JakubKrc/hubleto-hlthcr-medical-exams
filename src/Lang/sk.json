@@ -53,7 +53,9 @@
         "Category 1": "Kategória 1",
         "Category 2": "Kategória 2",
         "Category 3": "Kategória 3",
-        "Category 4": "Kategória 4"
+        "Category 4": "Kategória 4",
+        "Category 1 / yes": "Kategória 1 / áno",
+        "Yes": "Áno"
     },
     "Controllers\\Api\\GetExamHazards": {
         "The medical exam does not exist.": "Lekárska prehliadka neexistuje."
@@ -69,10 +71,6 @@
     "Components\\FormExam": {
         "Medical exam": "Lekárska prehliadka",
         "Factors and examinations": "Faktory a vyšetrenia",
-        "Open document": "Zobraziť dokument",
-        "No document is uploaded.": "Dokument nie je vložený.",
-        "Open scan": "Zobraziť sken",
-        "No scan is uploaded.": "Sken nie je vložený.",
         "Fitness assessment": "Lekársky posudok"
     },
     "Components\\ExamHazardsEditor": {

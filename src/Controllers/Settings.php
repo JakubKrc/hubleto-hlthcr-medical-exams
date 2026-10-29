@@ -37,6 +37,10 @@ class Settings extends \Hubleto\Erp\Controller
       }
     }
 
+    // The hazard catalogue is in HlthcrCore, which medical staff do not have.
+    $coreApp = $this->appManager()->getApp('Hubleto\\App\\External\\WaiBlue\\HlthcrCore');
+    $this->viewParams['mayOpenHazards'] = $coreApp !== null && $this->permissionsManager()->isAppPermittedForActiveUser($coreApp);
+
     $this->viewParams['templateNames'] = $templateNames;
     $this->viewParams['fitnessAssessmentTemplateId'] = $fitnessAssessment->getTemplateId();
     $this->setView('@Hubleto:App:External:WaiBlue:HlthcrMedicalExams/Settings.twig');
