@@ -2,7 +2,7 @@
 
 namespace Hubleto\App\External\WaiBlue\HlthcrMedicalExams;
 
-use Hubleto\App\External\WaiBlue\HlthcrCore\Services\Roles;
+use Hubleto\App\External\WaiBlue\HlthcrCore\Services\CalendarAuthor;
 
 /**
  * Medical exams in the Hubleto calendar (legacy colour green), derived from the exams.
@@ -44,11 +44,7 @@ class Calendar extends \Hubleto\App\Community\Calendar\Calendar
       })
     ;
 
-    // Legacy calendar: administrators and managers see all exam events, others the exams they created.
-    $idAuthor = (int) ($filter['idUser'] ?? 0);
-    $showsOnlyMyEvents = (int) ($filter['fOwnership'] ?? 0) == 1;
-    $canSeeAllExamEvents = $this->getService(Roles::class)->isActiveUserAdministratorOrManager();
-    if ($showsOnlyMyEvents || !$canSeeAllExamEvents) $idAuthor = $this->authProvider()->getUserId();
+    $idAuthor = $this->getService(CalendarAuthor::class)->getAuthorIdToShow($filter);
     if ($idAuthor > 0) {
       $query = $query->where('hlthcr_exams.id_author', $idAuthor);
     }
