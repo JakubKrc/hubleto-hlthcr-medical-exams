@@ -16,8 +16,16 @@ function isEmployeeInactive(exam: any): boolean {
   return exam.EMPLOYEE && !Number(exam.EMPLOYEE.is_active);
 }
 
+// Today's date on the user's computer as YYYY-MM-DD (toISOString() would give the UTC date, a day off around midnight).
+function getLocalToday(): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return now.getFullYear() + '-' + month + '-' + day;
+}
+
 function isOverdueWithoutResult(exam: any): boolean {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalToday();
   const isPast = (exam.date_exam ?? '') !== '' && exam.date_exam < today;
   return isPast && Number(exam.result ?? 0) === RESULT_UNDETERMINED && !isEmployeeInactive(exam);
 }
