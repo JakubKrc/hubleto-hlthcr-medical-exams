@@ -26,12 +26,14 @@ const InputClinicOfEmployee = (props: {readonly: boolean}) => {
 }
 
 // Employee, type and clinic stay as created (the server keeps them), so they are read-only after saving.
+// The employee is also read-only when the exam is added in the employee's tab (both legacy apps).
 const TabDefault = () => {
   const form = React.useContext(FormMetaContext);
   const isSaved = form.id > 0;
+  const isEmployeeGiven = Number(form.description?.defaultValues?.id_employee ?? 0) > 0;
   return <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
     <div>
-      <Input field='id_employee' readonly={isSaved} />
+      <Input field='id_employee' readonly={isSaved || isEmployeeGiven} />
       {isSaved ? <Input field='id_job' /> : null}
       <Input field='exam_type' readonly={isSaved} />
       <div className='grid grid-cols-2 gap-2'>
@@ -41,6 +43,7 @@ const TabDefault = () => {
       <Input field='result' />
       <Input field='note' />
       <InputClinicOfEmployee readonly={isSaved} />
+      {isSaved ? <Input field='id_author' /> : null}
     </div>
     <div>
       <Input field='next_exam_type' />

@@ -24,6 +24,7 @@ use Hubleto\Framework\Db\Column\Integer;
 use Hubleto\Framework\Db\Column\Lookup;
 use Hubleto\Framework\Db\Column\Time;
 use Hubleto\Framework\Db\Column\Varchar;
+use Hubleto\Framework\Db\Column\Virtual;
 
 /**
  * Preventive medical exam (LPP) of a client employee. Types and results use the codes both legacy apps share.
@@ -51,6 +52,14 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
 
   // Form field with the submitted factors as JSON {idHazard: level}; saved into ExamHasHazard, not a column.
   const SUBMITTED_HAZARDS_FIELD = 'hazard_levels';
+
+  // The branch of the exam's job (the branch at the time of the exam), or else the employee's branch, with its client.
+  const BRANCH_AND_CLIENT_SQL = 'select concat(hlthcr_branches.name, " - ", customers.name)
+    from hlthcr_branches join customers on customers.id = hlthcr_branches.id_customer
+    where hlthcr_branches.id = coalesce(
+      (select hlthcr_jobs.id_branch from hlthcr_jobs where hlthcr_jobs.id = hlthcr_exams.id_job),
+      (select hlthcr_employees.id_branch from hlthcr_employees where hlthcr_employees.id = hlthcr_exams.id_employee)
+    )';
 
   public string $table = 'hlthcr_exams';
   public string $recordManagerClass = RecordManagers\Exam::class;
@@ -120,6 +129,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
       'next_exam_type' => (new Integer($this, $this->translate('Type of next medical exam')))
         ->setDefaultValue(self::TYPE_UNDETERMINED)
         ->setEnumValues($nextTypeLabels)
+        ->setDefaultVisible()
       ,
       'date_next_exam' => (new Date($this, $this->translate('Date of next medical exam')))
         ->setDefaultVisible()
@@ -142,6 +152,11 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
         ])
       ,
       'note' => (new Varchar($this, $this->translate('Note'))),
+      // The lists of both legacy apps show where the employee works (one the branch, the other the client).
+      'virt_branch_and_client' => (new Virtual($this, $this->translate('Branch - client')))
+        ->setDefaultVisible()
+        ->setProperty('sql', self::BRANCH_AND_CLIENT_SQL)
+      ,
       'id_clinic' => (new Lookup($this, $this->translate('Clinic'), Clinic::class))
         ->setRequired()
         ->setDefaultVisible()
@@ -171,6 +186,8 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $description->ui['orderBy'] = ['field' => 'date_exam', 'direction' => 'asc'];
     $description->show(['header', 'fulltextSearch', 'columnSearch', 'moreActionsButton']);
     $description->hide(['footer']);
+    // In the employee's tab the employee is known, so its column is left out (both legacy apps).
+    if ($this->router()->urlParamAsInteger('idEmployee') > 0) $description->hideColumns(['id_employee']);
 
     $description->addFilter(RecordManagers\Exam::PERIOD_FILTER, [
       'title' => $this->translate('Period'),

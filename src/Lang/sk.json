@@ -42,7 +42,8 @@
         "Planned next medical exam": "Naplánovaná ďalšia lekárska prehliadka",
         "The clinic does not serve the employee's branch.": "Ambulancia neobsluhuje prevádzku zamestnanca.",
         "Job position": "Pracovná pozícia",
-        "The job position is not one of the employee's branch.": "Pracovná pozícia nepatrí k prevádzke zamestnanca."
+        "The job position is not one of the employee's branch.": "Pracovná pozícia nepatrí k prevádzke zamestnanca.",
+        "Branch - client": "Prevádzka - klient"
     },
     "Models\\ExamHasHazard": {
         "Medical exam": "Lekárska prehliadka",
