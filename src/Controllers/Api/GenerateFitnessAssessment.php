@@ -40,7 +40,10 @@ class GenerateFitnessAssessment extends \Hubleto\Erp\Controllers\ApiController
     $mExam = $this->getModel(Exam::class);
     $previousPdfFile = (string) $mExam->record->where('id', $idExam)->value('fitness_assessment_file');
     $mExam->record->where('id', $idExam)->update(['fitness_assessment_file' => $pdfFile]);
-    $this->getService(ProtectedFile::class)->delete($previousPdfFile);
+    // Two runs within one second write the same file name, so the "previous" file is the new one.
+    if ($previousPdfFile != $pdfFile) {
+      $this->getService(ProtectedFile::class)->delete($previousPdfFile);
+    }
 
     return ['status' => 'success', 'file' => $pdfFile];
   }

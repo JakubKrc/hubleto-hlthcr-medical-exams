@@ -264,7 +264,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $savedRecord = parent::onAfterCreate($savedRecord);
     $this->saveSubmittedHazards((int) $savedRecord['id']);
 
-    return $this->updateNextExam($savedRecord);
+    return $this->updateNextExam($savedRecord, '');
   }
 
   public function onAfterUpdate(array $originalRecord, array $savedRecord): array
@@ -272,7 +272,8 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $savedRecord = parent::onAfterUpdate($originalRecord, $savedRecord);
     $this->saveSubmittedHazards((int) $savedRecord['id']);
 
-    return $this->updateNextExam($savedRecord);
+    $previousNextExamDate = (string) ($originalRecord['date_next_exam'] ?? '');
+    return $this->updateNextExam($savedRecord, $previousNextExamDate);
   }
 
   public function onBeforeDelete(int $id): int
@@ -365,7 +366,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
    * Plan on result: the next exam date is computed when a fit result is recorded, unless it was typed,
    * and recomputed when the exam changes. Exit exams and "unfit" have no next exam. The planned exam follows the date.
    */
-  private function updateNextExam(array $savedRecord): array
+  private function updateNextExam(array $savedRecord, string $previousNextExamDate): array
   {
     /** @var NextExamDate */
     $nextExamDate = $this->getService(NextExamDate::class);
@@ -389,7 +390,7 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
 
     $mayPlan = $dateNextExam != '' && $nextExamDate->hasResultWithNextExam($savedRecord);
     if ($mayPlan) {
-      return $this->planNextExam($savedRecord, $dateNextExam);
+      return $this->planNextExam($savedRecord, $dateNextExam, $previousNextExamDate);
     }
     return $this->removeOpenPlannedExam($savedRecord);
   }
@@ -398,14 +399,16 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
    * Keeps one planned exam on the next exam date: moves the one planned before, or creates it.
    * Created directly, so the planned exam does not plan further exams before it has a result.
    */
-  private function planNextExam(array $savedRecord, string $dateNextExam): array
+  private function planNextExam(array $savedRecord, string $dateNextExam, string $previousNextExamDate): array
   {
     $idExam = (int) $savedRecord['id'];
     $plannedExam = $this->findPlannedExam($savedRecord);
 
     if ($plannedExam) {
+      // A planned exam the user moved to another day stays there; it follows only a change of the next exam date.
       $isStillOpen = (int) $plannedExam->result == self::RESULT_UNDETERMINED;
-      if ($isStillOpen && (string) $plannedExam->date_exam != $dateNextExam) {
+      $isOnPreviousDate = (string) $plannedExam->date_exam == $previousNextExamDate;
+      if ($isStillOpen && $isOnPreviousDate && (string) $plannedExam->date_exam != $dateNextExam) {
         $plannedExam->update(['date_exam' => $dateNextExam]);
       }
       return $savedRecord;
