@@ -239,34 +239,37 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     $record['next_exam_date_typed'] = (string) ($record['date_next_exam'] ?? '') != '';
     $record['id_planned_exam'] = null;
 
-    // Medical staff plan exams only at their own clinics (the first one unless another own one is chosen).
-    /** @var ExamAccess */
-    $examAccess = $this->getService(ExamAccess::class);
-    $isOwnClinic = in_array((int) ($record['id_clinic'] ?? 0), $examAccess->getOwnClinicIds());
-    if ($examAccess->seesOnlyOwnClinicExams() && !$isOwnClinic) {
-      $record['id_clinic'] = $examAccess->getOwnClinicId();
-    }
+    $record = $this->keepMedicalStaffAtOwnClinic($record);
     $this->refuseClinicNotServingBranch($record);
 
     $record = $this->keepStoredFile($record, 'document', null);
     return $this->keepStoredFile($record, 'scan', null);
   }
 
-  // Employee, job, type, clinic and author stay as created.
+  // Everything can be changed; the job follows the employee, and the author stays as created.
   public function onBeforeUpdate(array $record): array
   {
     $record = parent::onBeforeUpdate($record);
     $record = $this->emptyDatesAsNull($record);
     $this->submittedHazardLevels = $this->readSubmittedHazardLevels($record);
     // The next exam rules read these; a save that leaves one out must not clear the next exam.
-    $record = $this->addStoredValuesOfMissingColumns($record, ['result', 'date_exam', 'date_next_exam', 'next_exam_type']);
+    $record = $this->addStoredValuesOfMissingColumns($record, [
+      'id_employee', 'exam_type', 'id_clinic', 'result', 'date_exam', 'date_next_exam', 'next_exam_type',
+    ]);
 
     $originalExam = $this->record->where('id', (int) $record['id'])->first();
     if ($originalExam) {
-      $record['id_employee'] = $originalExam->id_employee;
-      $record['id_job'] = $originalExam->id_job;
-      $record['exam_type'] = $originalExam->exam_type;
-      $record['id_clinic'] = $originalExam->id_clinic;
+      $isEmployeeChanged = (int) $record['id_employee'] != (int) $originalExam->id_employee;
+      $isClinicChanged = (int) $record['id_clinic'] != (int) $originalExam->id_clinic;
+      if ($isEmployeeChanged) {
+        $record['id_job'] = $this->getJobOfNewExam(['id_employee' => $record['id_employee']]);
+      } else {
+        $record['id_job'] = $originalExam->id_job;
+      }
+      if ($isEmployeeChanged || $isClinicChanged) {
+        $record = $this->keepMedicalStaffAtOwnClinic($record);
+        $this->refuseClinicNotServingBranch($record);
+      }
       $record['id_author'] = $originalExam->id_author;
       $record['id_planned_exam'] = $originalExam->id_planned_exam;
       $record['fitness_assessment_file'] = $originalExam->fitness_assessment_file;
@@ -289,6 +292,15 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
   public function onAfterUpdate(array $originalRecord, array $savedRecord): array
   {
     $savedRecord = parent::onAfterUpdate($originalRecord, $savedRecord);
+
+    // Another employee: the factors come from the new job, and the exam planned for the old employee goes.
+    $isEmployeeKnownBefore = array_key_exists('id_employee', $originalRecord);
+    $isEmployeeChanged = $isEmployeeKnownBefore && (int) $originalRecord['id_employee'] != (int) $savedRecord['id_employee'];
+    if ($isEmployeeChanged) {
+      $this->saveSubmittedOrJobHazards((int) $savedRecord['id'], (int) $savedRecord['id_employee']);
+      $savedRecord = $this->removeOpenPlannedExam($savedRecord);
+      return $this->updateNextExam($savedRecord, '');
+    }
     $this->saveSubmittedHazards((int) $savedRecord['id']);
 
     $isExamDateChanged = (string) ($originalRecord['date_exam'] ?? '') != (string) ($savedRecord['date_exam'] ?? '');
@@ -359,7 +371,19 @@ class Exam extends \Hubleto\App\External\WaiBlue\HlthcrCore\Models\HlthcrModel
     return $idUser;
   }
 
-  // Both legacy apps offer only the clinics that serve the employee's branch; the server checks a new exam too.
+  // Medical staff plan exams only at their own clinics (the first one unless another own one is chosen).
+  private function keepMedicalStaffAtOwnClinic(array $record): array
+  {
+    /** @var ExamAccess */
+    $examAccess = $this->getService(ExamAccess::class);
+    $isOwnClinic = in_array((int) ($record['id_clinic'] ?? 0), $examAccess->getOwnClinicIds());
+    if ($examAccess->seesOnlyOwnClinicExams() && !$isOwnClinic) {
+      $record['id_clinic'] = $examAccess->getOwnClinicId();
+    }
+    return $record;
+  }
+
+  // Both legacy apps offer only the clinics that serve the employee's branch; the server checks every change too.
   private function refuseClinicNotServingBranch(array $record): void
   {
     $idClinic = (int) ($record['id_clinic'] ?? 0);

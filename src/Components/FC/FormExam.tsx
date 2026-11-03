@@ -15,34 +15,33 @@ const parentApp = 'Hubleto/App/External/WaiBlue/HlthcrMedicalExams';
 const T = new Translator(parentApp + '/Loader', 'Components/' + componentName);
 
 // The clinic dropdown offers the clinics of the employee's branch (FC lookups do not send form values).
-const InputClinicOfEmployee = (props: {readonly: boolean}) => {
+const InputClinicOfEmployee = () => {
   const idEmployee = useRecordField('id_employee', 0);
   return <Input
     key={'clinic-of-employee-' + idEmployee}
     field='id_clinic'
-    readonly={props.readonly}
     customInputProps={{myself: {customEndpointParams: {idEmployee: idEmployee}}}}
   />;
 }
 
-// Employee, type and clinic stay as created (the server keeps them), so they are read-only after saving.
-// The employee is also read-only when the exam is added in the employee's tab (both legacy apps).
+// The employee is read-only when the exam is opened in the employee's tab (both legacy apps).
+// The job is not chosen: the server takes the employee's job.
 const TabDefault = () => {
   const form = React.useContext(FormMetaContext);
   const isSaved = form.id > 0;
   const isEmployeeGiven = Number(form.description?.defaultValues?.id_employee ?? 0) > 0;
   return <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
     <div>
-      <Input field='id_employee' readonly={isSaved || isEmployeeGiven} />
+      <Input field='id_employee' readonly={isEmployeeGiven} />
       {isSaved ? <Input field='id_job' /> : null}
-      <Input field='exam_type' readonly={isSaved} />
+      <Input field='exam_type' />
       <div className='grid grid-cols-2 gap-2'>
         <Input field='date_exam' />
         <Input field='time_exam' />
       </div>
       <Input field='result' />
       <Input field='note' />
-      <InputClinicOfEmployee readonly={isSaved} />
+      <InputClinicOfEmployee />
       {isSaved ? <Input field='id_author' /> : null}
     </div>
     <div>
